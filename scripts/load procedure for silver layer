@@ -1,0 +1,171 @@
+
+/*=============================================================================
+What this script does:      
+This script takes the raw, messy data from the Bronze tables, cleans it up, 
+and loads it into the Silver staging tables. I translated this project to MySQL, 
+so I had to figure out a lot of workarounds for the data types!
+
+Things I did in this code:
+  - Removed duplicate records using ROW_NUMBER() to keep only the newest ones.
+  - Fixed date formats (turned 8-digit integers into real dates using STR_TO_DATE).
+  - Used IFNULL() and CASE statements to clean up NULLs and empty spaces.
+  - Sliced and fixed text strings using SUBSTRING() and REPLACE() for the IDs.
+  - Filled in missing sales and price numbers by doing math on the other columns.
+===============================================================================
+*/
+-- ==================================================
+-- insrting clean data into Silver layer
+-- ===================================================
+DELIMITER $$
+DROP PROCEDURE IF EXISTS load_silver$$
+CREATE PROCEDURE load_silver ()
+BEGIN 
+	TRUNCATE TABLE s_crm_cust_info;
+	INSERT INTO s_crm_cust_info (
+	cst_id,
+	cst_key,
+	cst_firstname,
+	cst_lastname,
+	cst_material_status,
+	cst_gndr,
+	cst_create_date)
+		SELECT 
+		cst_id,
+		cst_key,
+		TRIM(cst_firstname) AS cst_firstname,
+		TRIM(cst_lastname) AS cst_lastname,
+		CASE WHEN UPPER (TRIM(cst_material_status)) = 'S' THEN 'Single'
+			 WHEN UPPER (TRIM(cst_material_status)) = 'M' THEN 'Married'
+			 ELSE 'n/a'
+		END cst_material_status,
+		CASE WHEN UPPER (TRIM(cst_gndr)) = 'F' THEN 'Female'
+			 WHEN UPPER (TRIM(cst_gndr)) = 'M' THEN 'Male'
+			 ELSE 'n/a'
+		END cst_gndr,
+		cst_create_date
+		FROM
+			(SELECT *,
+			ROW_NUMBER () OVER(PARTITION BY cst_id ORDER BY cst_create_date) AS letest_id
+			FROM b_crm_cust_info) t
+		WHERE cst_id IS NOT NULL AND letest_id = 1;
+		
+	TRUNCATE TABLE s_crm_prd_info;
+	INSERT INTO s_crm_prd_info(
+	prd_id,
+	cat_id,
+	prd_key,
+	prd_nm,
+	prd_cost,
+	prd_line,
+	prd_start_dt,
+	prd_end_dt)
+	SELECT 
+		prd_id,
+		REPLACE(SUBSTRING(prd_key, 1, 5),'-','_') AS cat_id,
+		SUBSTRING(prd_key, 7, length(prd_key)) AS prd_key,
+		prd_nm,
+		IFNULL(prd_cost, 0) AS prd_cost,
+		CASE UPPER(TRIM(prd_line))
+			WHEN 'M' THEN 'Mountain'
+			WHEN 'R' THEN 'Road'
+			WHEN 'S' THEN 'Other Sales'
+			WHEN 'T' THEN 'Touring'
+			ELSE 'n/a'
+		END AS prd_line,
+	CAST(prd_start_dt AS DATE) AS prd_start_dt,
+	CAST(LEAD (prd_start_dt) OVER(PARTITION BY prd_key ORDER BY prd_start_dt) - INTERVAL 1 DAY AS DATE) AS prd_end_dt
+	FROM b_crm_prd_info;
+
+	TRUNCATE TABLE s_crm_sales_details;
+	-- IF sales is negative,zero or null we can derive it from price quantity
+	-- if price is zero or null we can derive it from sales and quantity
+	-- if price is negative we can change it to possitive
+
+	INSERT INTO s_crm_sales_details (
+	sls_ord_num,
+	sls_prd_key,
+	sls_cust_id,
+	sls_order_dt,
+	sls_ship_dt,
+	sls_due_dt,
+	sls_sales,
+	sls_quantity,
+	sls_price
+	)
+	SELECT 
+		sls_ord_num,
+		sls_prd_key,
+		sls_cust_id,
+		CASE WHEN sls_order_dt = 0 OR LENGTH(sls_order_dt) != 8 THEN NULL
+			ELSE STR_TO_DATE(CAST(sls_order_dt AS CHAR), '%Y%m%d')
+		END AS sls_order_dt,
+		CASE WHEN sls_ship_dt = 0 OR LENGTH(sls_ship_dt) != 8 THEN NULL
+			ELSE STR_TO_DATE(CAST(sls_ship_dt AS CHAR), '%Y%m%d')
+		END AS sls_ship_dt,
+		CASE WHEN sls_due_dt = 0 OR LENGTH(sls_due_dt) != 8 THEN NULL
+			ELSE STR_TO_DATE(CAST(sls_due_dt AS CHAR), '%Y%m%d')
+		END AS sls_due_dt,
+		CASE WHEN sls_sales IS NULL OR  sls_sales != sls_quantity * ABS(sls_price) OR sls_sales <= 0
+				THEN sls_quantity * ABS(sls_price)
+			 ELSE sls_sales
+		END sls_sales,
+		sls_quantity,
+		CASE WHEN sls_price IS NULL OR sls_price <= 0
+				THEN sls_sales/NULLIF(sls_quantity,0)
+			ELSE sls_price
+		END sls_price
+	FROM b_crm_sales_details;
+
+	TRUNCATE TABLE s_erp_cust_az12;
+	INSERT INTO s_erp_cust_az12 (
+	cid,
+	bdate,
+	gen
+	)
+	SELECT 
+		CASE WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4)
+			 ELSE cid
+		END AS cid,
+		CASE WHEN bdate > CURRENT_TIMESTAMP THEN NULL
+			ELSE bdate
+		END AS bdate,
+		CASE UPPER(TRIM(gen))
+			WHEN 'M' THEN 'Male'
+			WHEN 'Male' THEN 'Male'
+			WHEN 'F' THEN 'Female'
+			WHEN 'Female' THEN 'Female'
+			ELSE 'n/a'
+		END AS gen
+	FROM b_erp_cust_az12;
+
+	TRUNCATE TABLE s_erp_loc_a101;
+	INSERT INTO s_erp_loc_a101(
+	cid,
+	cntry
+	)
+	SELECT
+		REPLACE(cid,'-','') AS cid,
+		CASE 
+			WHEN TRIM(cntry) = 'DE' THEN 'Germany'
+			WHEN TRIM(cntry) IN ('USA', 'US') THEN 'United States'
+			WHEN TRIM(cntry) = '' OR TRIM(cntry) IS NULL THEN 'n/a'
+			ELSE TRIM(cntry)
+		END AS cntry
+	FROM b_erp_loc_a101;
+
+
+	TRUNCATE TABLE s_erp_px_cat_g1v2;
+	INSERT INTO s_erp_px_cat_g1v2(
+	id,
+	cat,
+	subcat,
+	maintenace
+	)
+	SELECT
+		id,
+		cat,
+		subcat,
+		maintenace
+	FROM b_erp_px_cat_g1v2;
+END $$
+DELIMITER ;
