@@ -1,5 +1,7 @@
 
 /*=============================================================================
+Procedure Script Load Silver Tables
+===============================================================================
 What this script does:      
 This script takes the raw, messy data from the Bronze tables, cleans it up, 
 and loads it into the Silver staging tables. I translated this project to MySQL, 
