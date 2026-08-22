@@ -1,3 +1,22 @@
+/* =============================================================================
+DDL SCRIPT : Create Gold View
+ =============================================================================
+What this script does:      
+This is the final step! It takes all our clean data, links it together, and 
+creates the final "Gold" tables. These tables are fully ready to be plugged 
+into a dashboard tool (like Power BI or Tableau) to make charts and reports.
+
+Things I did in this code:
+  - Added a "drop if exists" step at the top so I can run this script over 
+    and over without getting errors.
+  - Used the main CRM system as my base, and attached the extra ERP data to it.
+  - Created brand new, clean ID numbers for every customer and product to keep 
+    everything perfectly organized.
+  - Filled in missing customer genders by borrowing that info from the ERP system.
+  - Filtered out old products that are no longer active.
+  - Linked the final Sales table directly to the clean Customer and Product tables!
+=====================================================================================
+*/
 -- CRM is the master
 -- macking row_no as surrogate key
 
