@@ -17,8 +17,8 @@ Things I did in this code:
 
 
 -- ======================================================================
- -- CREATEING SILVER LAYER TABLE
- -- ADDING NEW COLUMN dwh_create_date with CURENT TIMESTAMP
+ -- CREATING SILVER LAYER TABLE
+ -- ADDING NEW COLUMN dwh_create_date with CURRENT TIMESTAMP
  -- ======================================================================
  
  -- creating table from the sources
@@ -28,7 +28,7 @@ CREATE TABLE s_crm_cust_info (
 	cst_key VARCHAR (50),
 	cst_firstname VARCHAR (50),
 	cst_lastname VARCHAR (50),
-	cst_material_status VARCHAR (50),
+	cst_marital_status VARCHAR (50),
 	cst_gndr VARCHAR (50),
 	cst_create_date DATE ,
     dwh_create_date DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -69,8 +69,8 @@ gen 	VARCHAR (50),
 dwh_create_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS s_erp_los_a101;
-CREATE TABLE s_erp_los_a101(
+DROP TABLE IF EXISTS s_erp_loc_a101;
+CREATE TABLE s_erp_loc_a101(
 cid 	VARCHAR (50),
 cntry 	VARCHAR (50),
 dwh_create_date DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -81,6 +81,6 @@ CREATE TABLE s_erp_px_cat_g1v2 (
 id 			VARCHAR (50),
 cat 		VARCHAR (50),
 subcat		VARCHAR (50),
-maintenace 	VARCHAR (50),
+maintenance	VARCHAR (50),
 dwh_create_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
