@@ -4,10 +4,10 @@ LOAD SCRIPT: delete old existing data and loads fresh data into the data
               warehouse tables using LOAD DATA INFILE
 NOTE: To successfully run this script, MySQL requires the source CSV files to be 
 placed inside its designated secure upload folder
-TO check the parth of secure upload folder youse folloing query
+TO check the path of secure upload folder use following query
   SHOW VARIABLES LIKE 'secure_file_priv'
-and copy the part and past it in file
-and copy past  all the cvs file in it
+and copy the part and paste it in file
+and copy paste  all the CSV file in it
 ================================================================================
 */
 
