@@ -18,7 +18,7 @@ Things I did in this code:
 =====================================================================================
 */
 -- CRM is the master
--- macking row_no as surrogate key
+-- making row_no as surrogate key
 
 DROP VIEW  IF EXISTS g_dim_customer ;
 CREATE VIEW g_dim_customer AS
@@ -29,7 +29,7 @@ CREATE VIEW g_dim_customer AS
 		ci.cst_firstname AS first_name,
 		ci.cst_lastname AS last_name,
 		la.cntry AS country,
-		ci.cst_material_status AS material_status,
+		ci.cst_marital_status AS material_status,
 		CASE WHEN ci.cst_gndr != 'n/a' THEN ci.cst_gndr
 			 ELSE COALESCE(ca.gen, 'n/a')
 		END AS gender,
