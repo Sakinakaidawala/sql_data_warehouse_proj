@@ -1,8 +1,8 @@
 /* ===================================================================
 DDL script: Create table
 ======================================================================
-Perpose
-  this script delete table if already exists and  creat new  table 
+Purpose
+  this script delete table if already exists and create new  table 
   can run this script to redefine the DDL structure for the table
 warning: don't use this script if you already have schema (database) name 'DataWarehouse' in mySQL
 =====================================================================
@@ -65,6 +65,6 @@ CREATE TABLE b_erp_px_cat_g1v2 (
 id 			VARCHAR (50),
 cat 		VARCHAR (50),
 subcat		VARCHAR (50),
-maintenace 	VARCHAR (50)
+maintenance 	VARCHAR (50)
 );
 
