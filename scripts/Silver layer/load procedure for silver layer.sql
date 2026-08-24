@@ -16,7 +16,7 @@ Things I did in this code:
 ===============================================================================
 */
 -- ==================================================
--- insrting clean data into Silver layer
+-- inserting clean data into Silver layer
 -- ===================================================
 DELIMITER $$
 DROP PROCEDURE IF EXISTS load_silver$$
@@ -49,7 +49,7 @@ BEGIN
 			(SELECT *,
 			ROW_NUMBER () OVER(PARTITION BY cst_id ORDER BY cst_create_date) AS letest_id
 			FROM b_crm_cust_info) t
-		WHERE cst_id IS NOT NULL AND letest_id = 1;
+		WHERE cst_id IS NOT NULL AND latest_id = 1;
 		
 	TRUNCATE TABLE s_crm_prd_info;
 	INSERT INTO s_crm_prd_info(
