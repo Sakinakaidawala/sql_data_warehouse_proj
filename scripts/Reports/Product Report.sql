@@ -38,7 +38,7 @@ CREATE VIEW g_report_products AS
 		p.category,
 		p.subcategory,
 		p.cost
-		FROM g_dim_product p
+		FROM g_dim_products p
 		LEFT JOIN g_fact_sales s
 			ON p.product_key = s.product_key
 		WHERE order_date IS NOT NULL),
@@ -56,7 +56,7 @@ CREATE VIEW g_report_products AS
 		SUM(sales) total_sales,
 		SUM(quantity) total_quantity_sold,
 		COUNT(DISTINCT customer_key) total_customers,
-		ROUND(AVG(sales/NULLIF(quantity,0)),2) avg_selling_price
+		ROUND(SUM(sales/NULLIF(quantity,0)),2) avg_selling_price
 		FROM base_query
 		GROUP BY 
 			product_key,
