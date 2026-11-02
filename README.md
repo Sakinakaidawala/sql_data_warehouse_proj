@@ -1,5 +1,5 @@
 End-to-End Data Warehouse Construction (MySQL)
-Author: Sakina Kaidawala
+Author: Sakina Godhy
 
 📝 Project Overview
 This project demonstrates the end-to-end design and implementation of a custom Data Warehouse using MySQL. The objective was to ingest raw, messy data from multiple source systems (CRM and ERP), perform extensive data profiling, execute complex transformations, and ultimately model the data into a Star Schema optimized for Business Intelligence reporting.
