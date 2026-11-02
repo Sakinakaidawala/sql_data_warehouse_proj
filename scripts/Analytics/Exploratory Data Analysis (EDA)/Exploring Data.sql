@@ -1,7 +1,7 @@
 /*
 ===============================================================================
 Script:           Exploratory Data Analysis (EDA) & Key Metrics
-Author:           Sakina Kaidawala
+Author:           Sakina Godhy
 ===========================================================================
 What this script does:      
 This script explores the final Gold layer of the data warehouse. It calculates 
